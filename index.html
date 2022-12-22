@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Mouse move animation</title>
+</head>
+<body>
+<style>
+    .cursor {
+        position: fixed;
+        top: -40px;
+        left: -40px;
+        pointer-events: none;
+        z-index: 9999;
+        mix-blend-mode: difference;
+    }
+
+    .cursor:before {
+        content: "";
+        width: 75px;
+        height: 75px;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        align-items: center;
+        border-radius: 50%;
+        background: white;
+        border: 1px solid white;
+        transition: all ease 0.15s;
+        transform: scale(0.15);
+    }
+
+    .cursor.drag:before {
+        transform: scale(1);
+        background: #18191d;
+        border-color: transparent;
+    }
+
+    .cursor.drag:before {
+        content: "*";
+        font-family: "Themify";
+        font-size: 20px;
+        color: #fff;
+    }
+
+    .elem {
+        width: 400px;
+        height: 400px;
+        background: red;
+    }
+</style>
+
+<div class="cursor js-cursor">
+
+</div>
+
+<div class="elem">
+
+</div>
+<script
+        src="https://code.jquery.com/jquery-3.6.3.min.js"
+        integrity="sha256-pvPw+upLPUjgMXY0G+8O0xUf+/Im1MZjXxxgOcBQBXU="
+        crossorigin="anonymous"></script>
+<script>
+    // Mouse Cursor
+
+    function lerp(a, b, n) {
+        return (1 - n) * a + n * b
+    }
+    class Cursor {
+        constructor() {
+            this.bind()
+            this.cursor = document.querySelector('.js-cursor')
+
+            this.mouseCurrent = {
+                x: 0,
+                y: 0
+            }
+
+            this.mouseLast = {
+                x: this.mouseCurrent.x,
+                y: this.mouseCurrent.y
+            }
+
+            this.rAF = undefined
+        }
+
+        bind() {
+            ['getMousePosition', 'run'].forEach((fn) => this[fn] = this[fn].bind(this))
+        }
+
+        getMousePosition(e) {
+            this.mouseCurrent = {
+                x: e.clientX,
+                y: e.clientY
+            }
+        }
+
+        run() {
+            this.mouseLast.x = lerp(this.mouseLast.x, this.mouseCurrent.x, 0.2)
+            this.mouseLast.y = lerp(this.mouseLast.y, this.mouseCurrent.y, 0.2)
+
+            this.mouseLast.x = Math.floor(this.mouseLast.x * 100) / 100
+            this.mouseLast.y = Math.floor(this.mouseLast.y * 100) / 100
+
+            this.cursor.style.transform = `translate3d(${this.mouseLast.x}px, ${this.mouseLast.y}px, 0)`
+
+            this.rAF = requestAnimationFrame(this.run)
+        }
+
+        requestAnimationFrame() {
+            this.rAF = requestAnimationFrame(this.run)
+        }
+
+        addEvents() {
+            window.addEventListener('mousemove', this.getMousePosition, false)
+        }
+
+        on() {
+            this.addEvents()
+
+            this.requestAnimationFrame()
+        }
+
+        init() {
+            this.on()
+        }
+    }
+
+    if ($('.js-cursor').length > 0) {
+        const cursor = new Cursor()
+        cursor.init();
+
+        $('.elem').hover(function () {
+            $('.cursor').toggleClass('drag');
+        });
+    }
+</script>
+</body>
+</html>
